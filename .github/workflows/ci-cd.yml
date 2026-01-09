@@ -2,8 +2,7 @@ name: CI/CD LAMP Docker
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -13,14 +12,14 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build des containers
-        run: docker compose build
+        run: docker-compose -f docker-compose.yml build
 
       - name: Test local du container
         run: |
-          docker compose up -d
+          docker-compose -f docker-compose.yml up -d
           sleep 15
-          curl -f http://localhost:8080
-          docker compose down
+          curl -f http://localhost:8080 || exit 1
+          docker-compose down
 
   deploy:
     runs-on: ubuntu-latest
@@ -30,7 +29,7 @@ jobs:
       - name: Récupération du code
         uses: actions/checkout@v3
 
-      - name: Configuration SSH
+      - name: Config SSH
         run: |
           mkdir -p ~/.ssh
           cat << 'EOF' > ~/.ssh/id_ed25519
@@ -43,3 +42,4 @@ EOF
         run: |
           rsync -avz --exclude '.git' ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/lamp-app
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/lamp-app && docker-compose up -d --build"
+
