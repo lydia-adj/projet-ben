@@ -15,7 +15,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Set up Docker Compose
-        uses: docker/setup-compose-action@v3
+        uses: docker/setup-compose-action@v1
 
       - name: Build des containers
         run: docker-compose -f docker-compose.yml build
@@ -46,3 +46,4 @@ jobs:
         run: |
           rsync -avz --exclude '.git' ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/lamp-app
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/lamp-app && docker-compose up -d --build"
+
