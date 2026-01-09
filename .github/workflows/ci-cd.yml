@@ -2,7 +2,8 @@ name: CI/CD LAMP Docker
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   build:
@@ -12,13 +13,13 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build des containers
-        run: docker compose -f docker-compose.yml build
+        run: docker compose build
 
       - name: Test local du container
         run: |
-          docker compose -f docker-compose.yml up -d
+          docker compose up -d
           sleep 15
-          curl -f http://localhost:8080 || exit 1
+          curl -f http://localhost:8080
           docker compose down
 
   deploy:
@@ -29,16 +30,16 @@ jobs:
       - name: Récupération du code
         uses: actions/checkout@v3
 
-      - name: Config SSH
+      - name: Configuration SSH
         run: |
           mkdir -p ~/.ssh
-          cat << 'EOF' > $HOME/.ssh/id_ed25519
+          cat << 'EOF' > ~/.ssh/id_ed25519
 ${{ secrets.VPS_SSH_KEY }}
 EOF
-          chmod 600 $HOME/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> $HOME/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
       - name: Déploiement sur le VPS
         run: |
           rsync -avz --exclude '.git' ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/lamp-app
-          ssh -i $HOME/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/lamp-_
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/lamp-app && docker-compose up -d --build"
