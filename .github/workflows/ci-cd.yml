@@ -37,10 +37,12 @@ jobs:
           mkdir -p ~/.ssh
           printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          echo "Récupération de la clé hôte du VPS..."
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} || ssh-keyscan -H ${{ secrets.VPS_HOST }} | head -1 || true
+          chmod 600 ~/.ssh/known_hosts
+          ssh -o StrictHostKeyChecking=no -T -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo 'Connexion SSH OK'"
 
       - name: Déploiement sur le VPS
         run: |
           rsync -avz --exclude '.git' ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/lamp-app
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/lamp-app && docker compose up -d --build"
-
