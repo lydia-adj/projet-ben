@@ -32,13 +32,13 @@ jobs:
       - name: Config SSH
         run: |
           mkdir -p ~/.ssh
-          cat << 'EOF' > ~/.ssh/id_ed25519
+          cat << 'EOF' > $HOME/.ssh/id_ed25519
 ${{ secrets.VPS_SSH_KEY }}
 EOF
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          chmod 600 $HOME/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> $HOME/.ssh/known_hosts
 
       - name: Déploiement sur le VPS
         run: |
           rsync -avz --exclude '.git' ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/lamp-app
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/lamp-app && docker compose pull && docker compose up -d --build"
+          ssh -i $HOME/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/lamp-_
